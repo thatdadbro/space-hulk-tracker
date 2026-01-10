@@ -18,9 +18,15 @@ const state = {
     psychicPoints: 20,
     cannonPoints: 10,
     commandPoints: 0,
-    commandDrawn: 0,
     customTrackers: [],
-    nextTrackerId: 1
+    nextTrackerId: 1,
+    visibility: {
+        timer: true,
+        librarian: true,
+        cannon: true,
+        command: true,
+        custom: true
+    }
 };
 
 // ============================================
@@ -220,28 +226,10 @@ function resetPoints(type, defaultValue) {
 }
 
 /**
- * Updates the command points when drawn value changes
- */
-function updateCommandPoints() {
-    const input = document.getElementById('commandDrawn');
-    const value = Math.max(0, parseInt(input.value) || 0);
-    state.commandDrawn = value;
-    state.commandPoints = value;
-    
-    const pointsEl = document.getElementById('commandPoints');
-    pointsEl.textContent = value;
-    updatePointsStyle(pointsEl, value);
-    
-    saveState();
-}
-
-/**
  * Resets command points
  */
 function resetCommandPoints() {
-    state.commandDrawn = 0;
     state.commandPoints = 0;
-    document.getElementById('commandDrawn').value = 0;
     const pointsEl = document.getElementById('commandPoints');
     pointsEl.textContent = 0;
     updatePointsStyle(pointsEl, 0);
@@ -356,23 +344,97 @@ function removeCustomTracker(id) {
 }
 
 // ============================================
-// Librarian Toggle
+// Tracker Visibility
 // ============================================
 
 /**
- * Toggles visibility of the Librarian section
+ * Toggles visibility of a tracker section
+ * @param {string} tracker - Tracker name (timer, librarian, cannon, command, custom)
  */
-function toggleLibrarian() {
-    const checkbox = document.getElementById('showLibrarian');
-    const content = document.getElementById('librarianContent');
-    
-    if (checkbox.checked) {
-        content.classList.remove('hidden');
-    } else {
-        content.classList.add('hidden');
-    }
-    
+function toggleTrackerVisibility(tracker) {
+    state.visibility[tracker] = !state.visibility[tracker];
+    updateTrackerVisibility(tracker);
+    updateMenuCheckbox(tracker);
     saveState();
+}
+
+/**
+ * Updates the visibility of a tracker section in the DOM
+ * @param {string} tracker - Tracker name
+ */
+function updateTrackerVisibility(tracker) {
+    const sectionMap = {
+        timer: 'timerSection',
+        librarian: 'librarianSection',
+        cannon: 'cannonSection',
+        command: 'commandSection',
+        custom: 'customSection'
+    };
+    
+    const section = document.getElementById(sectionMap[tracker]);
+    if (section) {
+        if (state.visibility[tracker]) {
+            section.classList.remove('hidden-tracker');
+        } else {
+            section.classList.add('hidden-tracker');
+        }
+    }
+}
+
+/**
+ * Updates the menu checkbox to reflect visibility state
+ * @param {string} tracker - Tracker name
+ */
+function updateMenuCheckbox(tracker) {
+    const checkboxMap = {
+        timer: 'menuTimer',
+        librarian: 'menuLibrarian',
+        cannon: 'menuCannon',
+        command: 'menuCommand',
+        custom: 'menuCustom'
+    };
+    
+    const checkbox = document.getElementById(checkboxMap[tracker]);
+    if (checkbox) {
+        checkbox.checked = state.visibility[tracker];
+    }
+}
+
+/**
+ * Handles menu checkbox change
+ * @param {string} tracker - Tracker name
+ */
+function handleMenuCheckboxChange(tracker) {
+    const checkboxMap = {
+        timer: 'menuTimer',
+        librarian: 'menuLibrarian',
+        cannon: 'menuCannon',
+        command: 'menuCommand',
+        custom: 'menuCustom'
+    };
+    
+    const checkbox = document.getElementById(checkboxMap[tracker]);
+    if (checkbox) {
+        state.visibility[tracker] = checkbox.checked;
+        updateTrackerVisibility(tracker);
+        saveState();
+    }
+}
+
+/**
+ * Opens the tracker menu
+ */
+function openMenu() {
+    document.getElementById('trackerMenu').classList.add('open');
+    document.getElementById('menuOverlay').classList.add('open');
+}
+
+/**
+ * Closes the tracker menu
+ */
+function closeMenu() {
+    document.getElementById('trackerMenu').classList.remove('open');
+    document.getElementById('menuOverlay').classList.remove('open');
 }
 
 // ============================================
@@ -392,10 +454,9 @@ function saveState() {
         psychicPoints: state.psychicPoints,
         cannonPoints: state.cannonPoints,
         commandPoints: state.commandPoints,
-        commandDrawn: state.commandDrawn,
         customTrackers: state.customTrackers,
         nextTrackerId: state.nextTrackerId,
-        showLibrarian: document.getElementById('showLibrarian').checked
+        visibility: state.visibility
     };
     
     try {
@@ -426,7 +487,6 @@ function loadState() {
             state.psychicPoints = data.psychicPoints ?? 20;
             state.cannonPoints = data.cannonPoints ?? 10;
             state.commandPoints = data.commandPoints ?? 0;
-            state.commandDrawn = data.commandDrawn ?? 0;
             
             // Restore custom trackers
             if (data.customTrackers) {
@@ -435,19 +495,26 @@ function loadState() {
                 state.customTrackers.forEach(tracker => renderCustomTracker(tracker));
             }
             
-            // Restore librarian visibility
-            const showLibrarian = data.showLibrarian ?? true;
-            document.getElementById('showLibrarian').checked = showLibrarian;
-            if (!showLibrarian) {
-                document.getElementById('librarianContent').classList.add('hidden');
+            // Restore visibility settings
+            if (data.visibility) {
+                state.visibility = { ...state.visibility, ...data.visibility };
             }
+            // Handle legacy showLibrarian setting
+            if (data.showLibrarian !== undefined && data.visibility === undefined) {
+                state.visibility.librarian = data.showLibrarian;
+            }
+            
+            // Apply visibility to all trackers
+            Object.keys(state.visibility).forEach(tracker => {
+                updateTrackerVisibility(tracker);
+                updateMenuCheckbox(tracker);
+            });
             
             // Update displays
             updateTimerDisplay();
             document.getElementById('psychicPoints').textContent = state.psychicPoints;
             document.getElementById('cannonPoints').textContent = state.cannonPoints;
             document.getElementById('commandPoints').textContent = state.commandPoints;
-            document.getElementById('commandDrawn').value = state.commandDrawn;
             
             // Update styles
             updatePointsStyle(document.getElementById('psychicPoints'), state.psychicPoints);
@@ -497,15 +564,20 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimerMinutes(e.target.value);
     });
     
-    // Librarian toggle
-    document.getElementById('showLibrarian').addEventListener('change', toggleLibrarian);
+    // Menu controls
+    document.getElementById('menuBtn').addEventListener('click', openMenu);
+    document.getElementById('menuClose').addEventListener('click', closeMenu);
+    document.getElementById('menuOverlay').addEventListener('click', closeMenu);
     
-    // Command points input
-    document.getElementById('commandDrawn').addEventListener('input', updateCommandPoints);
+    // Menu checkboxes
+    document.getElementById('menuTimer').addEventListener('change', () => handleMenuCheckboxChange('timer'));
+    document.getElementById('menuLibrarian').addEventListener('change', () => handleMenuCheckboxChange('librarian'));
+    document.getElementById('menuCannon').addEventListener('change', () => handleMenuCheckboxChange('cannon'));
+    document.getElementById('menuCommand').addEventListener('change', () => handleMenuCheckboxChange('command'));
+    document.getElementById('menuCustom').addEventListener('change', () => handleMenuCheckboxChange('custom'));
     
     // Initialize timer display
     updateTimerDisplay();
-    
 
 });
 
