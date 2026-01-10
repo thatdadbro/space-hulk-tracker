@@ -598,17 +598,20 @@ body {
     .btn {
         min-height: 44px;
         min-width: 44px;
+        touch-action: manipulation;
     }
     
     .btn-adjust {
         min-width: 48px;
         min-height: 48px;
+        touch-action: manipulation;
     }
     
     input[type="number"],
     input[type="text"] {
         min-height: 44px;
         font-size: 16px; /* Prevents iOS zoom */
+        touch-action: manipulation;
     }
 }
 

@@ -130,7 +130,11 @@ function playTimerEndSound() {
     
     // Vibrate if supported (mobile devices)
     if ('vibrate' in navigator) {
-        navigator.vibrate([200, 100, 200, 100, 200]);
+        try {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+        } catch (e) {
+            // Vibration may fail due to permissions or other issues
+        }
     }
 }
 
@@ -391,7 +395,7 @@ function saveState() {
         commandDrawn: state.commandDrawn,
         customTrackers: state.customTrackers,
         nextTrackerId: state.nextTrackerId,
-        showLibrarian: document.getElementById('showLibrarian')?.checked ?? true
+        showLibrarian: document.getElementById('showLibrarian').checked
     };
     
     try {
@@ -465,9 +469,14 @@ function loadState() {
  * @returns {string} Escaped text
  */
 function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    const htmlEscapes = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    };
+    return String(text).replace(/[&<>"']/g, char => htmlEscapes[char]);
 }
 
 // ============================================
@@ -497,15 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize timer display
     updateTimerDisplay();
     
-    // Prevent zooming on double-tap (iOS)
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', (e) => {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-            e.preventDefault();
-        }
-        lastTouchEnd = now;
-    }, false);
+
 });
 
 // Handle page visibility to pause timer when hidden
