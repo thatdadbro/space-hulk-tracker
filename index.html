@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Space Hulk Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Oswald:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="skull-icon">☠</div>
+            <h1 class="title">SPACE HULK</h1>
+            <h2 class="subtitle">MISSION TRACKER</h2>
+            <div class="header-line"></div>
+        </header>
+
+        <main class="trackers">
+            <!-- Timer Section -->
+            <section class="tracker-section timer-section">
+                <div class="section-header">
+                    <div class="aquila">⚔</div>
+                    <h3>TURN TIMER</h3>
+                    <div class="aquila">⚔</div>
+                </div>
+                <div class="timer-display">
+                    <span id="minutes">03</span>
+                    <span class="timer-separator">:</span>
+                    <span id="seconds">00</span>
+                </div>
+                <div class="timer-controls">
+                    <button id="startTimer" class="btn btn-primary">START</button>
+                    <button id="pauseTimer" class="btn btn-secondary">PAUSE</button>
+                    <button id="resetTimer" class="btn btn-danger">RESET</button>
+                </div>
+                <div class="timer-settings">
+                    <label>Set Time (minutes):</label>
+                    <input type="number" id="timerMinutes" value="3" min="1" max="60">
+                </div>
+            </section>
+
+            <!-- Librarian Psychic Points -->
+            <section class="tracker-section psychic-section" id="librarianSection">
+                <div class="section-header">
+                    <div class="section-toggle">
+                        <input type="checkbox" id="showLibrarian" checked>
+                        <label for="showLibrarian">Show</label>
+                    </div>
+                    <h3>LIBRARIAN PSYCHIC POINTS</h3>
+                </div>
+                <div class="tracker-content" id="librarianContent">
+                    <div class="points-display">
+                        <button class="btn btn-adjust" onclick="adjustPoints('psychic', -1)">−</button>
+                        <div class="points-value" id="psychicPoints">20</div>
+                        <button class="btn btn-adjust" onclick="adjustPoints('psychic', 1)">+</button>
+                    </div>
+                    <div class="points-reset">
+                        <button class="btn btn-small" onclick="resetPoints('psychic', 20)">Reset to 20</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Assault Cannon -->
+            <section class="tracker-section cannon-section">
+                <div class="section-header">
+                    <h3>ASSAULT CANNON AMMO</h3>
+                </div>
+                <div class="tracker-content">
+                    <div class="points-display">
+                        <button class="btn btn-adjust" onclick="adjustPoints('cannon', -1)">−</button>
+                        <div class="points-value" id="cannonPoints">10</div>
+                        <button class="btn btn-adjust" onclick="adjustPoints('cannon', 1)">+</button>
+                    </div>
+                    <div class="points-reset">
+                        <button class="btn btn-small" onclick="resetPoints('cannon', 10)">Reset to 10</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Command Points -->
+            <section class="tracker-section command-section">
+                <div class="section-header">
+                    <h3>COMMAND POINTS</h3>
+                </div>
+                <div class="tracker-content">
+                    <div class="command-input">
+                        <label>Points Drawn:</label>
+                        <input type="number" id="commandDrawn" value="0" min="0" max="99" onchange="updateCommandPoints()">
+                    </div>
+                    <div class="points-display">
+                        <button class="btn btn-adjust" onclick="adjustPoints('command', -1)">−</button>
+                        <div class="points-value" id="commandPoints">0</div>
+                        <button class="btn btn-adjust" onclick="adjustPoints('command', 1)">+</button>
+                    </div>
+                    <div class="points-reset">
+                        <button class="btn btn-small" onclick="resetCommandPoints()">Reset</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Custom Trackers -->
+            <section class="tracker-section custom-section">
+                <div class="section-header">
+                    <h3>CUSTOM TRACKERS</h3>
+                </div>
+                <div id="customTrackers"></div>
+                <div class="add-tracker">
+                    <input type="text" id="customName" placeholder="Tracker Name">
+                    <input type="number" id="customDefault" placeholder="Default Value" value="10">
+                    <button class="btn btn-primary" onclick="addCustomTracker()">ADD TRACKER</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-line"></div>
+            <p>FOR THE EMPEROR</p>
+            <div class="skull-small">☠</div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
