@@ -32,10 +32,6 @@
             </div>
             <div class="menu-items" id="menuItems">
                 <label class="menu-item">
-                    <input type="checkbox" id="menuTimer" checked>
-                    <span>Turn Timer</span>
-                </label>
-                <label class="menu-item">
                     <input type="checkbox" id="menuLibrarian" checked>
                     <span>Librarian Psychic Points</span>
                 </label>
@@ -46,10 +42,6 @@
                 <label class="menu-item">
                     <input type="checkbox" id="menuCommand" checked>
                     <span>Command Points</span>
-                </label>
-                <label class="menu-item">
-                    <input type="checkbox" id="menuCustom" checked>
-                    <span>Custom Trackers</span>
                 </label>
             </div>
         </div>
@@ -62,9 +54,6 @@
                     <div class="aquila">⚔</div>
                     <h3>TURN TIMER</h3>
                     <div class="aquila">⚔</div>
-                    <button class="btn-visibility" onclick="toggleTrackerVisibility('timer')" aria-label="Hide tracker">
-                        <span class="material-symbols-outlined">visibility_off</span>
-                    </button>
                 </div>
                 <div class="tracker-content" id="timerContent">
                     <div class="timer-display">
@@ -145,15 +134,14 @@
             </section>
 
             <!-- Custom Trackers -->
-            <section class="tracker-section custom-section" id="customSection">
+            <div id="customTrackersContainer"></div>
+            
+            <!-- Add Custom Tracker Section -->
+            <section class="tracker-section custom-section">
                 <div class="section-header">
-                    <h3>CUSTOM TRACKERS</h3>
-                    <button class="btn-visibility" onclick="toggleTrackerVisibility('custom')" aria-label="Hide tracker">
-                        <span class="material-symbols-outlined">visibility_off</span>
-                    </button>
+                    <h3>ADD CUSTOM TRACKER</h3>
                 </div>
-                <div class="tracker-content" id="customContent">
-                    <div id="customTrackers"></div>
+                <div class="tracker-content">
                     <div class="add-tracker">
                         <input type="text" id="customName" placeholder="Tracker Name">
                         <input type="number" id="customDefault" placeholder="Default Value" value="10">

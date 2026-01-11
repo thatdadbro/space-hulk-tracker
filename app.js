@@ -21,11 +21,9 @@ const state = {
     customTrackers: [],
     nextTrackerId: 1,
     visibility: {
-        timer: true,
         librarian: true,
         cannon: true,
-        command: true,
-        custom: true
+        command: true
     }
 };
 
@@ -276,7 +274,9 @@ function addCustomTracker() {
     };
     
     state.customTrackers.push(tracker);
+    state.visibility[`custom-${tracker.id}`] = true;
     renderCustomTracker(tracker);
+    addCustomTrackerMenuItem(tracker);
     
     // Clear inputs
     nameInput.value = '';
@@ -290,23 +290,33 @@ function addCustomTracker() {
  * @param {Object} tracker - Tracker object
  */
 function renderCustomTracker(tracker) {
-    const container = document.getElementById('customTrackers');
+    const container = document.getElementById('customTrackersContainer');
     
-    const trackerEl = document.createElement('div');
-    trackerEl.className = 'custom-tracker';
+    const trackerEl = document.createElement('section');
+    trackerEl.className = 'tracker-section custom-section';
     trackerEl.id = `tracker-${tracker.id}`;
     trackerEl.innerHTML = `
-        <div class="custom-tracker-header">
-            <span class="custom-tracker-name">${escapeHtml(tracker.name)}</span>
-            <button class="btn-remove" onclick="removeCustomTracker(${tracker.id})" aria-label="Remove tracker">✕</button>
+        <div class="section-header">
+            <h3>${escapeHtml(tracker.name)}</h3>
+            <button class="btn-visibility" onclick="toggleTrackerVisibility('custom-${tracker.id}')" aria-label="Hide tracker">
+                <span class="material-symbols-outlined">visibility_off</span>
+            </button>
         </div>
-        <div class="points-display">
-            <button class="btn btn-adjust" onclick="adjustPoints('custom-${tracker.id}', -1)">−</button>
-            <div class="points-value" id="customPoints-${tracker.id}">${tracker.value}</div>
-            <button class="btn btn-adjust" onclick="adjustPoints('custom-${tracker.id}', 1)">+</button>
-        </div>
-        <div class="points-reset">
-            <button class="btn btn-small" onclick="resetCustomTracker(${tracker.id})">Reset to ${tracker.defaultValue}</button>
+        <div class="tracker-content" id="customContent-${tracker.id}">
+            <div class="custom-tracker">
+                <div class="custom-tracker-header">
+                    <span class="custom-tracker-name">${escapeHtml(tracker.name)}</span>
+                    <button class="btn-remove" onclick="removeCustomTracker(${tracker.id})" aria-label="Remove tracker">✕</button>
+                </div>
+                <div class="points-display">
+                    <button class="btn btn-adjust" onclick="adjustPoints('custom-${tracker.id}', -1)">−</button>
+                    <div class="points-value" id="customPoints-${tracker.id}">${tracker.value}</div>
+                    <button class="btn btn-adjust" onclick="adjustPoints('custom-${tracker.id}', 1)">+</button>
+                </div>
+                <div class="points-reset">
+                    <button class="btn btn-small" onclick="resetCustomTracker(${tracker.id})">Reset to ${tracker.defaultValue}</button>
+                </div>
+            </div>
         </div>
     `;
     
@@ -340,7 +350,43 @@ function removeCustomTracker(id) {
     if (element) {
         element.remove();
     }
+    removeCustomTrackerMenuItem(id);
+    delete state.visibility[`custom-${id}`];
     saveState();
+}
+
+/**
+ * Adds a menu item for a custom tracker
+ * @param {Object} tracker - Tracker object
+ */
+function addCustomTrackerMenuItem(tracker) {
+    const menuItems = document.getElementById('menuItems');
+    
+    const menuItem = document.createElement('label');
+    menuItem.className = 'menu-item';
+    menuItem.id = `menuItem-custom-${tracker.id}`;
+    menuItem.innerHTML = `
+        <input type="checkbox" id="menuCustom-${tracker.id}" checked>
+        <span>${escapeHtml(tracker.name)}</span>
+    `;
+    
+    menuItems.appendChild(menuItem);
+    
+    // Add event listener
+    document.getElementById(`menuCustom-${tracker.id}`).addEventListener('change', () => {
+        handleMenuCheckboxChange(`custom-${tracker.id}`);
+    });
+}
+
+/**
+ * Removes a menu item for a custom tracker
+ * @param {number} id - Tracker ID
+ */
+function removeCustomTrackerMenuItem(id) {
+    const menuItem = document.getElementById(`menuItem-custom-${id}`);
+    if (menuItem) {
+        menuItem.remove();
+    }
 }
 
 // ============================================
@@ -364,14 +410,19 @@ function toggleTrackerVisibility(tracker) {
  */
 function updateTrackerVisibility(tracker) {
     const sectionMap = {
-        timer: 'timerSection',
         librarian: 'librarianSection',
         cannon: 'cannonSection',
-        command: 'commandSection',
-        custom: 'customSection'
+        command: 'commandSection'
     };
     
-    const section = document.getElementById(sectionMap[tracker]);
+    let section;
+    if (tracker.startsWith('custom-')) {
+        const id = tracker.replace('custom-', '');
+        section = document.getElementById(`tracker-${id}`);
+    } else {
+        section = document.getElementById(sectionMap[tracker]);
+    }
+    
     if (section) {
         if (state.visibility[tracker]) {
             section.classList.remove('hidden-tracker');
@@ -387,14 +438,18 @@ function updateTrackerVisibility(tracker) {
  */
 function updateMenuCheckbox(tracker) {
     const checkboxMap = {
-        timer: 'menuTimer',
         librarian: 'menuLibrarian',
         cannon: 'menuCannon',
-        command: 'menuCommand',
-        custom: 'menuCustom'
+        command: 'menuCommand'
     };
     
-    const checkbox = document.getElementById(checkboxMap[tracker]);
+    let checkbox;
+    if (tracker.startsWith('custom-')) {
+        checkbox = document.getElementById(`menuCustom-${tracker.replace('custom-', '')}`);
+    } else {
+        checkbox = document.getElementById(checkboxMap[tracker]);
+    }
+    
     if (checkbox) {
         checkbox.checked = state.visibility[tracker];
     }
@@ -406,14 +461,18 @@ function updateMenuCheckbox(tracker) {
  */
 function handleMenuCheckboxChange(tracker) {
     const checkboxMap = {
-        timer: 'menuTimer',
         librarian: 'menuLibrarian',
         cannon: 'menuCannon',
-        command: 'menuCommand',
-        custom: 'menuCustom'
+        command: 'menuCommand'
     };
     
-    const checkbox = document.getElementById(checkboxMap[tracker]);
+    let checkbox;
+    if (tracker.startsWith('custom-')) {
+        checkbox = document.getElementById(`menuCustom-${tracker.replace('custom-', '')}`);
+    } else {
+        checkbox = document.getElementById(checkboxMap[tracker]);
+    }
+    
     if (checkbox) {
         state.visibility[tracker] = checkbox.checked;
         updateTrackerVisibility(tracker);
@@ -492,7 +551,10 @@ function loadState() {
             if (data.customTrackers) {
                 state.customTrackers = data.customTrackers;
                 state.nextTrackerId = data.nextTrackerId || 1;
-                state.customTrackers.forEach(tracker => renderCustomTracker(tracker));
+                state.customTrackers.forEach(tracker => {
+                    renderCustomTracker(tracker);
+                    addCustomTrackerMenuItem(tracker);
+                });
             }
             
             // Restore visibility settings
@@ -503,6 +565,9 @@ function loadState() {
             if (data.showLibrarian !== undefined && data.visibility === undefined) {
                 state.visibility.librarian = data.showLibrarian;
             }
+            // Remove obsolete visibility keys
+            delete state.visibility.timer;
+            delete state.visibility.custom;
             
             // Apply visibility to all trackers
             Object.keys(state.visibility).forEach(tracker => {
@@ -570,11 +635,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('menuOverlay').addEventListener('click', closeMenu);
     
     // Menu checkboxes
-    document.getElementById('menuTimer').addEventListener('change', () => handleMenuCheckboxChange('timer'));
     document.getElementById('menuLibrarian').addEventListener('change', () => handleMenuCheckboxChange('librarian'));
     document.getElementById('menuCannon').addEventListener('change', () => handleMenuCheckboxChange('cannon'));
     document.getElementById('menuCommand').addEventListener('change', () => handleMenuCheckboxChange('command'));
-    document.getElementById('menuCustom').addEventListener('change', () => handleMenuCheckboxChange('custom'));
     
     // Initialize timer display
     updateTimerDisplay();
