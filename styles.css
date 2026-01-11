@@ -462,7 +462,7 @@ body {
     position: relative;
 }
 
-/* Custom tracker header with centered content */
+/* Custom tracker header - centers child elements */
 .custom-tracker-header {
     display: flex;
     justify-content: center;
