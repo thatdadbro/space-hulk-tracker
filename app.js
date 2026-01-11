@@ -78,6 +78,18 @@ function startTimer() {
     
     state.timer.isRunning = true;
     state.timer.intervalId = setInterval(() => {
+        // Check for warning chimes BEFORE decrementing (only play once per timer run)
+        const totalSeconds = state.timer.minutes * 60 + state.timer.seconds;
+        if (totalSeconds === 60 && !state.timer.oneMinuteChimePlayed) {
+            // Play 1 minute warning chime
+            state.timer.oneMinuteChimePlayed = true;
+            playOneMinuteChime();
+        } else if (totalSeconds === 30 && !state.timer.thirtySecondChimePlayed) {
+            // Play 30 seconds warning chime
+            state.timer.thirtySecondChimePlayed = true;
+            playThirtySecondChime();
+        }
+        
         if (state.timer.seconds === 0) {
             if (state.timer.minutes === 0) {
                 // Timer finished
@@ -89,18 +101,6 @@ function startTimer() {
             state.timer.seconds = 59;
         } else {
             state.timer.seconds--;
-        }
-        
-        // Check for warning chimes (only play once per timer run)
-        const totalSeconds = state.timer.minutes * 60 + state.timer.seconds;
-        if (totalSeconds === 60 && !state.timer.oneMinuteChimePlayed) {
-            // Play 1 minute warning chime
-            state.timer.oneMinuteChimePlayed = true;
-            playOneMinuteChime();
-        } else if (totalSeconds === 30 && !state.timer.thirtySecondChimePlayed) {
-            // Play 30 seconds warning chime
-            state.timer.thirtySecondChimePlayed = true;
-            playThirtySecondChime();
         }
         
         updateTimerDisplay();
@@ -159,7 +159,7 @@ function setTimerMinutes(minutes) {
 }
 
 /**
- * Plays a sound when timer ends (visual feedback since we can't use audio API simply)
+ * Triggers alarm when timer ends (audio, visual, and haptic feedback)
  */
 function playTimerEndSound() {
     // Flash the timer display
