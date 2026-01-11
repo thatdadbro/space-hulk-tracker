@@ -14,7 +14,9 @@ const state = {
         isRunning: false,
         intervalId: null,
         defaultMinutes: 3,
-        alarmIntervalId: null
+        alarmIntervalId: null,
+        oneMinuteChimePlayed: false,
+        thirtySecondChimePlayed: false
     },
     psychicPoints: 20,
     cannonPoints: 10,
@@ -89,13 +91,15 @@ function startTimer() {
             state.timer.seconds--;
         }
         
-        // Check for warning chimes
+        // Check for warning chimes (only play once per timer run)
         const totalSeconds = state.timer.minutes * 60 + state.timer.seconds;
-        if (totalSeconds === 60) {
+        if (totalSeconds === 60 && !state.timer.oneMinuteChimePlayed) {
             // Play 1 minute warning chime
+            state.timer.oneMinuteChimePlayed = true;
             playOneMinuteChime();
-        } else if (totalSeconds === 30) {
+        } else if (totalSeconds === 30 && !state.timer.thirtySecondChimePlayed) {
             // Play 30 seconds warning chime
+            state.timer.thirtySecondChimePlayed = true;
             playThirtySecondChime();
         }
         
@@ -132,6 +136,9 @@ function resetTimer() {
     stopAlarm();
     state.timer.minutes = state.timer.defaultMinutes;
     state.timer.seconds = 0;
+    // Reset chime flags
+    state.timer.oneMinuteChimePlayed = false;
+    state.timer.thirtySecondChimePlayed = false;
     updateTimerDisplay();
     saveState();
 }
@@ -204,118 +211,65 @@ function stopAlarm() {
     }
 }
 
+// Audio constants
+const AUDIO_FREQUENCY = 880; // Hz (high A note)
+const AUDIO_RAMP_START_TIME = 0.01; // seconds
+const AUDIO_MIN_GAIN = 0.01; // minimum gain for exponential ramp
+
 /**
- * Plays an alarm sound using Web Audio API
+ * Helper function to create and play audio beeps
+ * @param {number} beepCount - Number of beeps to play
+ * @param {number} beepDuration - Duration of each beep in seconds
+ * @param {number} beepInterval - Interval between beeps in seconds
+ * @param {number} volume - Volume/gain of the beeps (0-1)
  */
-function playAlarmSound() {
+function playBeeps(beepCount, beepDuration, beepInterval, volume) {
     try {
-        // Get or create audio context
         const ctx = getAudioContext();
-        
-        // Play multiple beeps for alarm effect
-        const beepCount = 5;
-        const beepDuration = 0.2; // seconds
-        const beepInterval = 0.3; // seconds
         
         for (let i = 0; i < beepCount; i++) {
             const startTime = ctx.currentTime + (i * beepInterval);
             
-            // Create oscillator for beep sound
             const oscillator = ctx.createOscillator();
             const gainNode = ctx.createGain();
             
-            // Configure oscillator
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, startTime); // 880 Hz (high A note)
+            oscillator.frequency.setValueAtTime(AUDIO_FREQUENCY, startTime);
             
-            // Configure gain (volume envelope)
             gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + beepDuration);
+            gainNode.gain.linearRampToValueAtTime(volume, startTime + AUDIO_RAMP_START_TIME);
+            gainNode.gain.exponentialRampToValueAtTime(AUDIO_MIN_GAIN, startTime + beepDuration);
             
-            // Connect nodes
             oscillator.connect(gainNode);
             gainNode.connect(ctx.destination);
             
-            // Play the beep
             oscillator.start(startTime);
             oscillator.stop(startTime + beepDuration);
         }
     } catch (e) {
-        console.warn('Failed to play alarm sound:', e);
+        console.warn('Failed to play beeps:', e);
     }
+}
+
+/**
+ * Plays an alarm sound using Web Audio API
+ */
+function playAlarmSound() {
+    playBeeps(5, 0.2, 0.3, 0.3);
 }
 
 /**
  * Plays a chime at 1 minute remaining - 2 beeps
  */
 function playOneMinuteChime() {
-    try {
-        const ctx = getAudioContext();
-        
-        // Play 2 beeps for 1 minute warning
-        const beepCount = 2;
-        const beepDuration = 0.15; // seconds
-        const beepInterval = 0.25; // seconds
-        
-        for (let i = 0; i < beepCount; i++) {
-            const startTime = ctx.currentTime + (i * beepInterval);
-            
-            const oscillator = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, startTime); // Same frequency as alarm
-            
-            gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + beepDuration);
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            
-            oscillator.start(startTime);
-            oscillator.stop(startTime + beepDuration);
-        }
-    } catch (e) {
-        console.warn('Failed to play 1 minute chime:', e);
-    }
+    playBeeps(2, 0.15, 0.25, 0.25);
 }
 
 /**
  * Plays a chime at 30 seconds remaining - 3 beeps
  */
 function playThirtySecondChime() {
-    try {
-        const ctx = getAudioContext();
-        
-        // Play 3 beeps for 30 seconds warning
-        const beepCount = 3;
-        const beepDuration = 0.15; // seconds
-        const beepInterval = 0.2; // seconds
-        
-        for (let i = 0; i < beepCount; i++) {
-            const startTime = ctx.currentTime + (i * beepInterval);
-            
-            const oscillator = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, startTime); // Same frequency as alarm
-            
-            gainNode.gain.setValueAtTime(0, startTime);
-            gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + beepDuration);
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            
-            oscillator.start(startTime);
-            oscillator.stop(startTime + beepDuration);
-        }
-    } catch (e) {
-        console.warn('Failed to play 30 second chime:', e);
-    }
+    playBeeps(3, 0.15, 0.2, 0.25);
 }
 
 // ============================================
