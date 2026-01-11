@@ -167,7 +167,7 @@ function playAlarmSound() {
             
             // Configure oscillator
             oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(880, startTime); // A5 note
+            oscillator.frequency.setValueAtTime(880, startTime); // 880 Hz (high A note)
             
             // Configure gain (volume envelope)
             gainNode.gain.setValueAtTime(0, startTime);
@@ -609,7 +609,7 @@ function loadState() {
             if (data.showLibrarian !== undefined && data.visibility === undefined) {
                 state.visibility.librarian = data.showLibrarian;
             }
-            // Remove obsolete visibility keys
+            // Clean up obsolete visibility keys from previous version where timer and generic custom were hideable
             delete state.visibility.timer;
             delete state.visibility.custom;
             

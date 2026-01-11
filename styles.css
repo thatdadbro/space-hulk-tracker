@@ -462,7 +462,7 @@ body {
     position: relative;
 }
 
-/* Custom tracker header - remove button positioned absolutely */
+/* Custom tracker header with centered content */
 .custom-tracker-header {
     display: flex;
     justify-content: center;
@@ -590,6 +590,7 @@ body {
     border-color: var(--gold-dark);
 }
 
+/* Remove button for custom trackers - positioned absolutely to allow name centering */
 .btn-remove {
     position: absolute;
     right: 0;
