@@ -462,23 +462,13 @@ body {
     position: relative;
 }
 
+/* Custom tracker header - remove button positioned absolutely */
 .custom-tracker-header {
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 0.75rem;
     position: relative;
-}
-
-.custom-tracker-name {
-    font-family: 'Cinzel', serif;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--bone);
-    text-transform: uppercase;
-    letter-spacing: 0.1rem;
-    text-align: center;
-    flex: 1;
 }
 
 .custom-tracker .points-value {

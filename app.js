@@ -132,6 +132,9 @@ function playTimerEndSound() {
     const timerDisplay = document.querySelector('.timer-display');
     timerDisplay.classList.add('danger');
     
+    // Play alarm sound
+    playAlarmSound();
+    
     // Vibrate if supported (mobile devices)
     if ('vibrate' in navigator) {
         try {
@@ -139,6 +142,48 @@ function playTimerEndSound() {
         } catch (e) {
             // Vibration may fail due to permissions or other issues
         }
+    }
+}
+
+/**
+ * Plays an alarm sound using Web Audio API
+ */
+function playAlarmSound() {
+    try {
+        // Create audio context
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Play multiple beeps for alarm effect
+        const beepCount = 5;
+        const beepDuration = 0.2; // seconds
+        const beepInterval = 0.3; // seconds
+        
+        for (let i = 0; i < beepCount; i++) {
+            const startTime = audioContext.currentTime + (i * beepInterval);
+            
+            // Create oscillator for beep sound
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            // Configure oscillator
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(880, startTime); // A5 note
+            
+            // Configure gain (volume envelope)
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + beepDuration);
+            
+            // Connect nodes
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Play the beep
+            oscillator.start(startTime);
+            oscillator.stop(startTime + beepDuration);
+        }
+    } catch (e) {
+        console.warn('Failed to play alarm sound:', e);
     }
 }
 
@@ -305,7 +350,6 @@ function renderCustomTracker(tracker) {
         <div class="tracker-content" id="customContent-${tracker.id}">
             <div class="custom-tracker">
                 <div class="custom-tracker-header">
-                    <span class="custom-tracker-name">${escapeHtml(tracker.name)}</span>
                     <button class="btn-remove" onclick="removeCustomTracker(${tracker.id})" aria-label="Remove tracker">✕</button>
                 </div>
                 <div class="points-display">
@@ -395,7 +439,7 @@ function removeCustomTrackerMenuItem(id) {
 
 /**
  * Toggles visibility of a tracker section
- * @param {string} tracker - Tracker name (timer, librarian, cannon, command, custom)
+ * @param {string} tracker - Tracker name (librarian, cannon, command, or custom-{id})
  */
 function toggleTrackerVisibility(tracker) {
     state.visibility[tracker] = !state.visibility[tracker];
