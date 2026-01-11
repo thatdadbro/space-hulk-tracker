@@ -13,7 +13,8 @@ const state = {
         seconds: 0,
         isRunning: false,
         intervalId: null,
-        defaultMinutes: 3
+        defaultMinutes: 3,
+        alarmIntervalId: null
     },
     psychicPoints: 20,
     cannonPoints: 10,
@@ -103,6 +104,7 @@ function stopTimer() {
  */
 function resetTimer() {
     pauseTimer();
+    stopAlarm();
     state.timer.minutes = state.timer.defaultMinutes;
     state.timer.seconds = 0;
     updateTimerDisplay();
@@ -132,8 +134,8 @@ function playTimerEndSound() {
     const timerDisplay = document.querySelector('.timer-display');
     timerDisplay.classList.add('danger');
     
-    // Play alarm sound
-    playAlarmSound();
+    // Start continuous alarm that loops until reset
+    startContinuousAlarm();
     
     // Vibrate if supported (mobile devices)
     if ('vibrate' in navigator) {
@@ -142,6 +144,38 @@ function playTimerEndSound() {
         } catch (e) {
             // Vibration may fail due to permissions or other issues
         }
+    }
+}
+
+/**
+ * Starts a continuous alarm that repeats until stopped
+ */
+function startContinuousAlarm() {
+    // Stop any existing alarm
+    stopAlarm();
+    
+    // Play alarm immediately
+    playAlarmSound();
+    
+    // Set interval to repeat alarm every 2 seconds
+    state.timer.alarmIntervalId = setInterval(() => {
+        playAlarmSound();
+    }, 2000);
+}
+
+/**
+ * Stops the continuous alarm
+ */
+function stopAlarm() {
+    if (state.timer.alarmIntervalId) {
+        clearInterval(state.timer.alarmIntervalId);
+        state.timer.alarmIntervalId = null;
+    }
+    
+    // Remove danger class from timer display
+    const timerDisplay = document.querySelector('.timer-display');
+    if (timerDisplay) {
+        timerDisplay.classList.remove('danger');
     }
 }
 
@@ -350,7 +384,9 @@ function renderCustomTracker(tracker) {
         <div class="tracker-content" id="customContent-${tracker.id}">
             <div class="custom-tracker">
                 <div class="custom-tracker-header">
-                    <button class="btn-remove" onclick="removeCustomTracker(${tracker.id})" aria-label="Remove tracker">✕</button>
+                    <button class="btn-remove" onclick="removeCustomTracker(${tracker.id})" aria-label="Remove tracker" title="Remove this tracker">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
                 </div>
                 <div class="points-display">
                     <button class="btn btn-adjust" onclick="adjustPoints('custom-${tracker.id}', -1)">−</button>

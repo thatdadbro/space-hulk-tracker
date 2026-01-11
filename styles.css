@@ -600,6 +600,13 @@ body {
     font-size: 1.2rem;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-remove .material-symbols-outlined {
+    font-size: 1.25rem;
 }
 
 .btn-remove:hover {
