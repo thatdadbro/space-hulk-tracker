@@ -28,6 +28,20 @@ const state = {
     }
 };
 
+// Reusable audio context for alarm sounds
+let audioContext = null;
+
+/**
+ * Gets or creates the audio context
+ * @returns {AudioContext} The audio context instance
+ */
+function getAudioContext() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioContext;
+}
+
 // ============================================
 // Timer Functions
 // ============================================
@@ -184,8 +198,8 @@ function stopAlarm() {
  */
 function playAlarmSound() {
     try {
-        // Create audio context
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // Get or create audio context
+        const ctx = getAudioContext();
         
         // Play multiple beeps for alarm effect
         const beepCount = 5;
@@ -193,11 +207,11 @@ function playAlarmSound() {
         const beepInterval = 0.3; // seconds
         
         for (let i = 0; i < beepCount; i++) {
-            const startTime = audioContext.currentTime + (i * beepInterval);
+            const startTime = ctx.currentTime + (i * beepInterval);
             
             // Create oscillator for beep sound
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
             
             // Configure oscillator
             oscillator.type = 'sine';
@@ -210,7 +224,7 @@ function playAlarmSound() {
             
             // Connect nodes
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(ctx.destination);
             
             // Play the beep
             oscillator.start(startTime);
