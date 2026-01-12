@@ -50,12 +50,18 @@ body {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 1rem;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 767px) {
+  .container {
+    max-width: 600px;
+  }
 }
 
 /* Header Styles */
@@ -233,6 +239,32 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+/* Grid layout for larger screens */
+@media (min-width: 768px) {
+  .trackers {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  
+  /* Timer always spans full width */
+  .timer-section {
+    grid-column: 1 / -1;
+  }
+  
+  /* Add Custom Tracker section spans full width */
+  .custom-section:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 3-column layout for very large screens */
+@media (min-width: 1200px) {
+  .trackers {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Section Styles */
