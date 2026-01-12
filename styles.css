@@ -265,16 +265,6 @@ body {
   .trackers {
     grid-template-columns: repeat(3, 1fr);
   }
-  
-  /* Timer always spans full width */
-  .timer-section {
-    grid-column: 1 / -1;
-  }
-  
-  /* Add Custom Tracker section spans full width */
-  .custom-section:last-child {
-    grid-column: 1 / -1;
-  }
 }
 
 /* Section Styles */
