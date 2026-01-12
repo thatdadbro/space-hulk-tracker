@@ -1,6 +1,9 @@
 /**
  * Service Worker for Space Hulk Tracker
  * Provides offline functionality and caching
+ * 
+ * Note: External resources like Google Fonts are not cached due to CORS restrictions.
+ * The app will use fallback fonts when offline.
  */
 
 const CACHE_NAME = 'space-hulk-tracker-v1';
@@ -68,8 +71,13 @@ self.addEventListener('fetch', event => {
         
         return fetch(fetchRequest)
           .then(response => {
-            // Check if valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
+            // Check if valid response (allow 'basic' and 'cors' for external resources)
+            if (!response || response.status !== 200) {
+              return response;
+            }
+            
+            // Only cache same-origin responses to avoid CORS issues
+            if (response.type !== 'basic') {
               return response;
             }
             
@@ -80,6 +88,9 @@ self.addEventListener('fetch', event => {
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);
+              })
+              .catch(err => {
+                console.log('[ServiceWorker] Failed to cache:', err);
               });
             
             return response;
